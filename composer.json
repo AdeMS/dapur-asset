@@ -1,6 +1,6 @@
 {
-    "name": "adems/adems-asset",
-    "description": "Aset AdeMS, untuk mengelola segala file dan dokumen aset Tempat AdeMS.",
+    "name": "adems/dapur-asset",
+    "description": "Aset Dapur AdeMS, untuk mengelola segala file dan dokumen aset di Dapur Tempat AdeMS.",
     "license": "BSD-3-Clause",
     "keywords": [
         "asset",
@@ -10,7 +10,6 @@
         "mezzio",
         "middleware"
     ],
-    "homepage": "https://asset.adems.id",
     "config": {
         "sort-packages": true
     },
