@@ -51,9 +51,33 @@ class AssetHandler implements RequestHandlerInterface
             return $this->notFound();
         }
 
-        $contentType = mime_content_type($assetPath) ?: 'application/octet-stream';
+        return new Response(new Stream($assetPath, 'r'), 200, [
+            'Content-Type' => $this->getContentType($assetPath),
+        ]);
+    }
 
-        return new Response(new Stream($assetPath, 'r'), 200, ['Content-Type' => $contentType]);
+    private function getContentType(string $assetPath): string
+    {
+        $contentTypes = [
+            'css' => 'text/css; charset=utf-8',
+            'eot' => 'application/vnd.ms-fontobject',
+            'js' => 'text/javascript; charset=utf-8',
+            'json' => 'application/json; charset=utf-8',
+            'mjs' => 'text/javascript; charset=utf-8',
+            'otf' => 'font/otf',
+            'svg' => 'image/svg+xml',
+            'ttf' => 'font/ttf',
+            'wasm' => 'application/wasm',
+            'woff' => 'font/woff',
+            'woff2' => 'font/woff2',
+        ];
+
+        $extension = strtolower(pathinfo($assetPath, PATHINFO_EXTENSION));
+        if (isset($contentTypes[$extension])) {
+            return $contentTypes[$extension];
+        }
+
+        return mime_content_type($assetPath) ?: 'application/octet-stream';
     }
 
     private function isWithinAssetRoot(string $assetPath, string $assetRoot): bool
