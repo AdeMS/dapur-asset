@@ -53,7 +53,7 @@ class ConfigProvider
         return [
             [
                 'name' => 'asset',
-                'path' => '/asset',
+                'path' => '/asset/:vendor/:filepath',
                 'middleware' => Handler\AssetHandler::class,
                 'allowed_methods' => ['GET'],
             ]
