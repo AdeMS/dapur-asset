@@ -56,6 +56,11 @@ class ConfigProvider
                 'path' => '/asset/:vendor/:filepath',
                 'middleware' => Handler\AssetHandler::class,
                 'allowed_methods' => ['GET'],
+                'options' => [
+                    'constraints' => [
+                        'filepath' => '.+',
+                    ],
+                ],
             ]
         ];
     }
