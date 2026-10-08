@@ -2,12 +2,16 @@
 
 PSR-15 / Mezzio handler package for serving files from `adems-dapur/data/asset`.
 
-Requests below `/asset/` map to the same relative path under `data/asset`:
+Requests in the form `/asset/{vendor_name}/{filepath}` map to the same relative
+path under `data/asset`:
 
 ```text
 /asset/bootstrap/dist/css/bootstrap.min.css
 -> data/asset/bootstrap/dist/css/bootstrap.min.css
 ```
+
+If the requested file does not exist (or resolves outside the asset directory),
+the handler responds with HTTP 404.
 
 The package contributes its route through `Asset\ConfigProvider`; it does not
 edit the consuming application's route files during Composer install/update.
