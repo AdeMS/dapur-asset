@@ -2,66 +2,48 @@
 
 declare(strict_types=1);
 
-namespace Adems\Asset;
+namespace AdeMS\Dapur\Asset;
 
-class ConfigProvider
+use AdeMS\Dapur\Asset\Handler\AsetHandler;
+use AdeMS\Dapur\Asset\Http\EmitterDelegator;
+use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
+use Mezzio\Application;
+
+/**
+ * Modul aset: route `/asset/<vendor>/<aplikasi>/[<versi>/]<file>`, view helper `aset()`, dan tabel aset untuk
+ * `php dapur pasang`.
+ *
+ * Cantumkan di config/modul.local.php inti agar berlaku untuk inti dan semua website. Pengaturannya
+ * (`'asset' => [...]`, lihat kelas Pengaturan) sengaja tidak diberi nilai di sini.
+ */
+final class ConfigProvider
 {
-    /**
-     * Returns the configuration array
-     *
-     * To add a bit of a structure, each section is defined in a separate
-     * method which returns an array with its configuration.
-     */
+    /** @return array<string, mixed> */
     public function __invoke(): array
     {
         return [
-            'dependencies' => $this->getDependencies(),
-            'templates'    => $this->getTemplates(),
-            'routes'       => $this->getRoutes(),
-        ];
-    }
-
-    /**
-     * Returns the container dependencies
-     */
-    public function getDependencies(): array
-    {
-        return [
-            'invokables' => [
-
+            'dapur'        => [
+                'skema' => [AsetSkema::class],
             ],
-            'factories'  => [
-                Handler\AssetHandler::class => Handler\AssetHandlerFactory::class,
-            ],
-        ];
-    }
-
-    /**
-     * Returns the templates configuration
-     */
-    public function getTemplates(): array
-    {
-        return [
-            'paths' => [
-                'asset'    => [__DIR__ . '/../templates/asset'],
-            ],
-        ];
-    }
-
-    public function getRoutes(): array
-    {
-        return [
-            [
-                'name' => 'asset',
-                'path' => '/asset/:vendor/:filepath',
-                'middleware' => Handler\AssetHandler::class,
-                'allowed_methods' => ['GET'],
-                'options' => [
-                    'constraints' => [
-                        'filepath' => '.+',
-                    ],
+            'dependencies' => [
+                'factories'  => array_fill_keys([
+                    Pengaturan::class,
+                    NamaTabel::class,
+                    DaftarAset::class,
+                    Katalog::class,
+                    Unggahan::class,
+                    AsetHandler::class,
+                    AsetHelper::class,
+                ], PabrikLayanan::class),
+                'delegators' => [
+                    Application::class      => [RuteDelegator::class],
+                    EmitterInterface::class => [EmitterDelegator::class],
                 ],
-            ]
+            ],
+            'view_helpers' => [
+                'aliases'   => ['aset' => AsetHelper::class],
+                'factories' => [AsetHelper::class => PabrikLayanan::class],
+            ],
         ];
     }
 }
