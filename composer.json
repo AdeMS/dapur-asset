@@ -1,29 +1,56 @@
 {
     "name": "adems/dapur-asset",
-    "description": "Aset Dapur AdeMS, untuk mengelola segala file dan dokumen aset di Dapur Tempat AdeMS.",
+    "description": "Modul aset untuk Dapur AdeMS: melayani dan mengelola file CSS, JavaScript, gambar, font, dan dokumen per vendor/aplikasi dan per versi",
+    "type": "library",
     "license": "BSD-3-Clause",
     "keywords": [
-        "asset",
         "dapur",
-        "php",
+        "adems",
         "laminas",
         "mezzio",
-        "middleware"
+        "asset",
+        "aset"
     ],
-    "config": {
-        "sort-packages": true
-    },
-    "extra": {
-        "laminas": {
-            "config-provider": "Adems\\Asset\\ConfigProvider"
+    "homepage": "https://www.adems.id",
+    "authors": [
+        {
+            "name": "Ade M Saragih",
+            "homepage": "https://www.adems.id"
         }
-    },
+    ],
     "require": {
-        "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
+        "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
+        "ext-fileinfo": "*",
+        "composer-runtime-api": "^2.0",
+        "adems/dapur-database": "^1.0",
+        "laminas/laminas-db": "^2.22",
+        "laminas/laminas-diactoros": "^3.0",
+        "laminas/laminas-httphandlerrunner": "^2.1",
+        "laminas/laminas-view": "^3.0",
+        "mezzio/mezzio": "^3.20",
+        "psr/container": "^1.1 || ^2.0",
+        "psr/http-server-handler": "^1.0"
+    },
+    "suggest": {
+        "ext-zip": "Untuk mengunggah aset dalam bentuk file ZIP (dibongkar di server)"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
     },
     "autoload": {
         "psr-4": {
-            "Adems\\Asset\\": "src/"
+            "AdeMS\\Dapur\\Asset\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AdeMS\\Dapur\\Asset\\Test\\": "test/"
+        }
+    },
+    "bin": [
+        "bin/dapur-asset"
+    ],
+    "scripts": {
+        "test": "phpunit"
     }
 }
