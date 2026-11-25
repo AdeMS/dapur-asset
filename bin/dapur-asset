@@ -1,0 +1,43 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Perintah modul aset Dapur AdeMS. Jalankan dari folder inti:
+ *
+ *   vendor/bin/dapur-asset daftar
+ *   vendor/bin/dapur-asset info <vendor/aplikasi>
+ *   vendor/bin/dapur-asset terbitkan <vendor/aplikasi> <versi>
+ *   vendor/bin/dapur-asset riwayat [<vendor/aplikasi>] [--jumlah=20]
+ */
+
+declare(strict_types=1);
+
+use AdeMS\Dapur\Asset\DaftarAset;
+use AdeMS\Dapur\Asset\KelolaAset;
+use AdeMS\Dapur\Asset\Lingkup;
+use AdeMS\Dapur\Asset\PabrikLayanan;
+use AdeMS\Dapur\Asset\Pengaturan;
+use AdeMS\Dapur\Asset\Perintah;
+use Laminas\Db\Adapter\Adapter;
+
+require $GLOBALS['_composer_autoload_path'] ?? dirname(__DIR__, 3) . '/autoload.php';
+
+try {
+    chdir(Lingkup::folderInti());
+
+    $container = require 'config/container.php';
+    $katalog   = PabrikLayanan::katalog($container);
+    $daftar    = $container->has(Adapter::class) && $container->has(DaftarAset::class) ? $container->get(DaftarAset::class) : null;
+    $kelola    = $daftar !== null && $daftar->tersedia()
+        ? new KelolaAset($katalog, $daftar, $container->get(Pengaturan::class), null, Perintah::pelakuTerminal())
+        : null;
+
+    exit((new Perintah($katalog, $kelola, $daftar))->jalankan(array_values(array_slice($argv, 1))));
+} catch (Throwable $e) {
+    while ($e->getPrevious() !== null) {
+        $e = $e->getPrevious();
+    }
+
+    fwrite(STDERR, 'Gagal: ' . $e->getMessage() . PHP_EOL);
+    exit(1);
+}
