@@ -15,7 +15,10 @@ use Composer\InstalledVersions;
  *
  *       "extra": { "dapur": { "asset": { "adems/uang": "public" } } }
  *
- * Versinya adalah versi paket yang terpasang.
+ *   Versinya adalah versi paket yang terpasang.
+ * - aset yang dinyatakan composer.json inti Dapur sendiri (paket root), mis. adems/dapur (CSS, JS, gambar layout).
+ *   Aset ini TANPA versi (versi = null): versi paket root tidak bisa diandalkan (branch `2.12.x-dev`, atau
+ *   `1.0.0+no-version-set` pada create-project), jadi alamatnya memakai `?v=<waktu ubah file>` dari helper aset().
  */
 final class AsetComposer
 {
@@ -25,31 +28,41 @@ final class AsetComposer
         'twbs/bootstrap-icons' => ['paket' => 'twbs/bootstrap-icons', 'folder' => 'font'],
     ];
 
-    /** @var array<string, array{paket: string, folder: string, versi: string}>|null */
+    /** Penanda bahwa versi ini mengenal aset milik inti (dipakai bin/setup-bootstrap.php inti Dapur 2.12). */
+    public const ASET_INTI = true;
+
+    /** @var array<string, array{paket: string, folder: string, versi: ?string}>|null */
     private ?array $daftar = null;
 
     /**
      * @param string|null $fileInstalled vendor/composer/installed.json; null = dicari dari autoloader Composer
-     * @param array<string, array{paket: string, folder: string, versi: string}>|null $daftar daftar tetap (untuk uji)
+     * @param array<string, array{paket: string, folder: string, versi: ?string}>|null $daftar daftar tetap (untuk uji)
+     * @param string|null $folderInti folder inti Dapur (composer.json root); null = folder paket root Composer
      */
-    public function __construct(private readonly ?string $fileInstalled = null, ?array $daftar = null)
-    {
+    public function __construct(
+        private readonly ?string $fileInstalled = null,
+        ?array $daftar = null,
+        private readonly ?string $folderInti = null,
+    ) {
         $this->daftar = $daftar;
     }
 
-    /** @return array<string, array{paket: string, folder: string, versi: string}> nama aset => paket, folder, versi */
+    /**
+     * @return array<string, array{paket: string, folder: string, versi: ?string}> nama aset => paket, folder, versi
+     *         (versi null = aset tanpa versi milik inti)
+     */
     public function daftar(): array
     {
         return $this->daftar ??= $this->baca();
     }
 
-    /** @return array<string, array{paket: string, folder: string, versi: string}> */
+    /** @return array<string, array{paket: string, folder: string, versi: ?string}> */
     private function baca(): array
     {
-        $hasil = [];
+        $hasil = $this->asetInti();
         foreach (self::BAWAAN as $nama => $isi) {
             $aset = $this->aset($isi['paket'], $isi['folder']);
-            if ($aset !== null) {
+            if ($aset !== null && ! isset($hasil[$nama])) {
                 $hasil[$nama] = $aset;
             }
         }
@@ -94,6 +107,48 @@ final class AsetComposer
         $penuh = realpath($dasar . ($relatif === '' ? '' : '/' . $relatif));
 
         return $penuh === false || ! is_dir($penuh) ? null : ['paket' => $paket, 'folder' => $penuh, 'versi' => $versi];
+    }
+
+    /**
+     * Aset dari composer.json inti Dapur. Foldernya harus berada di dalam folder inti.
+     *
+     * @return array<string, array{paket: string, folder: string, versi: null}>
+     */
+    private function asetInti(): array
+    {
+        try {
+            $inti = $this->folderInti ?? Lingkup::folderInti();
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $isi = is_file($inti . '/composer.json') ? json_decode((string) file_get_contents($inti . '/composer.json'), true) : null;
+        $daftar = is_array($isi) ? ($isi['extra']['dapur']['asset'] ?? null) : null;
+        if (! is_array($daftar)) {
+            return [];
+        }
+
+        $akar  = realpath($inti);
+        $paket = is_string($isi['name'] ?? null) ? $isi['name'] : 'root';
+        $hasil = [];
+        foreach ($daftar as $nama => $folder) {
+            if (! is_string($nama) || ! is_string($folder) || ! Nama::sahAset($nama, true) || $akar === false) {
+                continue;
+            }
+
+            try {
+                $relatif = Nama::periksaJalur($folder);
+            } catch (\InvalidArgumentException) {
+                continue;
+            }
+
+            $penuh = $relatif === '' ? false : realpath($akar . '/' . $relatif);
+            if ($penuh !== false && is_dir($penuh) && str_starts_with($penuh . '/', $akar . '/')) {
+                $hasil[$nama] = ['paket' => $paket, 'folder' => $penuh, 'versi' => null];
+            }
+        }
+
+        return $hasil;
     }
 
     /** @return array<string, array<mixed>> nama paket => isi extra.dapur.asset */
