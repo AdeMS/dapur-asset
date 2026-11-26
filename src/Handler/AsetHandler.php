@@ -20,23 +20,34 @@ use Psr\Http\Server\RequestHandlerInterface;
  *
  * - Alamat dengan versi: isinya tidak pernah berubah (versi terbit dikunci), jadi browser boleh menyimpannya setahun.
  * - Alamat tanpa versi: versi pilihan website (atau versi bawaan, atau terbaru); disimpan browser 5 menit saja.
+ * - Aset tanpa versi dengan `?v=<waktu ubah file>` yang cocok (alamat dari helper aset()): disimpan setahun, karena
+ *   alamatnya ikut berubah saat filenya berubah.
  * - Aset ber-akses login hanya dilayani bila PenjagaAkses mengizinkan; selain itu 404, agar keberadaannya tidak
  *   ketahuan.
  *
- * File yang ada di public/asset (mis. /asset/dapur/...) dilayani web server langsung dan tidak pernah sampai ke sini.
+ * File yang benar-benar ada di public/asset dilayani web server langsung dan tidak pernah sampai ke sini.
  */
 final class AsetHandler implements RequestHandlerInterface
 {
     /**
-     * Alamat lama sebelum modul aset: /asset/bootstrap/... (Bootstrap) dan /asset/bootstrap/font/... (Bootstrap Icons),
-     * dari salinan yang dulu dibuat composer di public/asset/bootstrap. Kini dilayani dari aset Composer, dengan versi
-     * yang dipakai website ini. Tetap didukung sampai Dapur 3.0.
+     * Alamat lama sebelum modul aset, tetap didukung sampai Dapur 3.0:
      *
-     * @var array<string, string> awalan alamat lama => nama aset
+     * - /asset/bootstrap/... (Bootstrap) dan /asset/bootstrap/font/... (Bootstrap Icons), dari salinan yang dulu dibuat
+     *   composer di public/asset/bootstrap; kini dari aset Composer dengan versi yang dipakai website ini;
+     * - /asset/dapur/... dan /asset/adems/img/favicon.ico, file inti yang dulu berada di public/asset; sejak Dapur 2.12
+     *   menjadi aset adems/dapur.
+     *
+     * Urutan penting: awalan yang lebih panjang dulu.
+     *
+     * @var array<string, string> awalan alamat lama => awalan alamat baru
      */
     public const ALAMAT_LAMA = [
-        'bootstrap/font/' => 'twbs/bootstrap-icons/',
-        'bootstrap/'      => 'twbs/bootstrap/',
+        'bootstrap/font/'       => 'twbs/bootstrap-icons/',
+        'bootstrap/'            => 'twbs/bootstrap/',
+        'adems/img/favicon.ico' => 'adems/dapur/img/favicon.ico',
+        'dapur/css/'            => 'adems/dapur/css/',
+        'dapur/js/'             => 'adems/dapur/js/',
+        'dapur/img/'            => 'adems/dapur/img/',
     ];
 
     public const CACHE_TETAP   = 31536000;
@@ -87,7 +98,20 @@ final class AsetHandler implements RequestHandlerInterface
             return self::tidakAda();
         }
 
+        if (! $aset->berversi && self::versiFileCocok($request, $file)) {
+            $tetap = true;
+        }
+
         return $this->kirim($request, $file, $tetap, $aset->akses === Aset::LOGIN);
+    }
+
+    /** `?v=` sama dengan waktu ubah file sekarang (bentuk heksadesimal, seperti buatan helper aset()). */
+    private static function versiFileCocok(ServerRequestInterface $request, string $file): bool
+    {
+        $v = $request->getQueryParams()['v'] ?? null;
+        $waktu = @filemtime($file);
+
+        return is_string($v) && $waktu !== false && hash_equals(dechex($waktu), $v);
     }
 
     private static function alamatBaru(string $jalur): string
