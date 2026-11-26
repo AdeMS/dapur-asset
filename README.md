@@ -27,11 +27,13 @@ super).
 
 | Sumber | Contoh | Bisa diubah dari dashboard? |
 |---|---|---|
+| Inti Dapur | `adems/dapur` (CSS, JS, dan gambar layout), dari `composer.json` inti | Tidak (terkunci, tanpa versi) |
 | Paket Composer | `twbs/bootstrap`, `twbs/bootstrap-icons`, modul yang menyatakan `extra.dapur.asset` | Tidak (terkunci), tetapi bisa diberi **versi tambahan** |
 | File konfigurasi | `'asset' => ['aset' => [...]]` | Tidak (terkunci) |
 | Dashboard | aset yang dibuat lewat halaman Aset | Ya |
 
-Bila namanya sama, aset dari file konfigurasi menang, lalu Composer, lalu dashboard.
+Bila namanya sama, aset dari file konfigurasi menang, lalu Composer (aset inti lebih dulu), lalu dashboard. Vendor
+`dapur` dan `bootstrap` milik inti Dapur, jadi tidak bisa dipakai aset dari dashboard atau file konfigurasi.
 
 ### Versi
 
@@ -47,7 +49,9 @@ Versi yang dipakai saat alamat tidak menyebut versi:
 3. versi terbit yang **terbaru**.
 
 Aset **tanpa versi** (misalnya gambar atau dokumen) menyimpan filenya langsung di `data/asset/<vendor>/<aplikasi>/`
-dan bisa diubah kapan saja; browser hanya menyimpannya 5 menit.
+dan bisa diubah kapan saja; browser hanya menyimpannya 5 menit. Alamat dari helper `aset()` untuk aset tanpa versi
+memakai `?v=<waktu ubah file>`: bila nilai itu cocok dengan file sekarang, browser boleh menyimpannya setahun, karena
+alamatnya ikut berubah begitu filenya berubah.
 
 ### Akses
 
@@ -120,6 +124,16 @@ Modul Dapur bisa membawa CSS/JS-nya sendiri. Nyatakan foldernya di `composer.jso
 
 Isi folder `public/` modul itu dilayani di `/asset/adems/uang/<versi paket>/...`.
 
+Inti Dapur (paket root Composer) memakai cara yang sama untuk file tampilannya:
+
+```json
+"extra": { "dapur": { "asset": { "adems/dapur": "module/App/asset" } } }
+```
+
+Bedanya, aset dari `composer.json` inti **tidak berversi**, karena versi paket root tidak bisa diandalkan (di branch
+tertulis `2.12.x-dev`, pada `composer create-project` bahkan `1.0.0+no-version-set`). Alamatnya
+`/asset/adems/dapur/css/style.css?v=<waktu ubah file>`. Foldernya harus berada di dalam folder inti.
+
 ## Pengaturan
 
 Pengaturan dasar ditulis di file konfigurasi (mis. `config/autoload/asset.local.php`) dan tidak bisa diubah dari
@@ -172,6 +186,22 @@ Tambahkan `--website=<domain>` untuk website tertentu (paket multi-website).
 | `asset_riwayat` | catatan perubahan (siapa, apa, kapan) |
 
 Nama tabel mengikuti awalan instalasi (`'database' => ['awalan_tabel' => ...]`).
+
+## Alamat lama
+
+Alamat dari masa sebelum modul aset tetap dilayani sampai Dapur 3.0:
+
+| Alamat lama | Dilayani dari |
+|---|---|
+| `/asset/bootstrap/...` | `twbs/bootstrap` (versi yang dipakai website) |
+| `/asset/bootstrap/font/...` | `twbs/bootstrap-icons` |
+| `/asset/dapur/css/...`, `/asset/dapur/js/...`, `/asset/dapur/img/...` | `adems/dapur` |
+| `/asset/adems/img/favicon.ico` | `adems/dapur/img/favicon.ico` |
+
+## Memperbarui dari 1.0
+
+Versi 1.1 mengenal aset milik inti Dapur (`adems/dapur`) dan dibutuhkan oleh Dapur 2.12 (inti menolak dapur-asset 1.0
+lewat `conflict`). Perbarui keduanya bersama, lalu `composer update`; tidak ada perubahan tabel.
 
 ## Memperbarui dari 0.1
 
