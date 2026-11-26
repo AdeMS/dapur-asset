@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * Contoh pengaturan Aset Dapur AdeMS.
+ *
+ * Salin ke folder inti Dapur (atau ke config/autoload website tertentu):
+ *
+ *     cp vendor/adems/dapur-asset/config/asset.local.php.dist config/autoload/asset.local.php
+ *
+ * File *.local.php diabaikan Git. Semua kunci boleh dihapus: tanpa file ini modul memakai nilai bawaan.
+ * Pengaturan di file ini tidak bisa diubah dari dashboard.
+ * Sesudah mengubah file ini, hapus cache konfigurasi: composer clear-config-cache
+ */
+
+declare(strict_types=1);
+
+return [
+    'asset' => [
+        // Folder aset yang dikelola dari dashboard (<folder>/<vendor>/<aplikasi>/<versi>/...).
+        // Harus bisa ditulis web server. Bawaan: <inti>/data/asset
+        // 'folder' => '/path/ke/data/asset',
+
+        // Batas ukuran satu unggahan dalam MB, dihitung sesudah ZIP dibongkar (unggahan dikirim bertahap per 1 MB).
+        // 'unggah_maks_mb' => 100,
+
+        // Aset terkunci: file dari folder mana pun di server, tampil di dashboard tanpa bisa diubah.
+        // - kunci = nama aset <vendor>/<aplikasi>; vendor 'dapur' dan 'bootstrap' tidak boleh dipakai;
+        // - 'folder'       = folder di server yang harus bisa dibaca web server;
+        // - 'akses'        = 'publik' (siapa pun) atau 'login' (hanya user yang sedang login);
+        // - 'berversi'     = true bila isi folder berupa subfolder per versi (<folder>/1.0.0/...);
+        // - 'versi_bawaan' = versi yang dipakai bila website tidak memilih (opsional, hanya aset berversi);
+        // - 'keterangan'   = teks penjelasan di dashboard (opsional).
+        // 'aset' => [
+        //     'adems/logo' => ['folder' => '/path/ke/logo', 'akses' => 'publik', 'berversi' => false],
+        // ],
+
+        // Versi pilihan website ini; menang atas pilihan di dashboard. Paling berguna di config/autoload website.
+        // 'versi' => [
+        //     'twbs/bootstrap' => '5.3.8',
+        // ],
+    ],
+];
