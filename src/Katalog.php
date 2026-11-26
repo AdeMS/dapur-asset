@@ -119,7 +119,26 @@ final class Katalog
 
         // Composer: versi paket yang terpasang, ditambah versi unggahan bila aset ini juga tercatat di database.
         foreach ($this->composer->daftar() as $nama => $c) {
-            $db       = $hasil[$nama] ?? null;
+            $db = $hasil[$nama] ?? null;
+
+            // Aset milik inti Dapur (composer.json inti): tanpa versi, langsung dari folder di repo inti.
+            if ($c['versi'] === null) {
+                $hasil[$nama] = new Aset(
+                    nama: $nama,
+                    sumber: Aset::SUMBER_COMPOSER,
+                    id: null,
+                    berversi: false,
+                    akses: Aset::PUBLIK,
+                    aktif: true,
+                    versiBawaan: null,
+                    keterangan: 'Bawaan inti Dapur',
+                    folder: $c['folder'],
+                    paket: $c['paket'],
+                );
+
+                continue;
+            }
+
             $semua    = [$c['versi'] => new Versi($c['versi'], $c['folder'], Aset::SUMBER_COMPOSER, true)];
             foreach ($db?->versi ?? [] as $v => $isi) {
                 $semua[$v] ??= $isi;
