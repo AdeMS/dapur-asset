@@ -123,7 +123,13 @@ Isi folder `public/` modul itu dilayani di `/asset/adems/uang/<versi paket>/...`
 ## Pengaturan
 
 Pengaturan dasar ditulis di file konfigurasi (mis. `config/autoload/asset.local.php`) dan tidak bisa diubah dari
-dashboard:
+dashboard. Contoh lengkap dengan penjelasan ada di `config/asset.local.php.dist`:
+
+```bash
+cp vendor/adems/dapur-asset/config/asset.local.php.dist config/autoload/asset.local.php
+```
+
+Isinya:
 
 ```php
 return [
