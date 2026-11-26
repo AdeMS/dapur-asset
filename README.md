@@ -102,9 +102,9 @@ mengambil file baru. Argumen ketiga adalah alamat cadangan bila aset tidak diken
 <?= $this->aset('twbs/bootstrap', 'css/bootstrap.min.css', '/asset/bootstrap/css/bootstrap.min.css') ?>
 ```
 
-Untuk aset Composer, alamat cadangan juga dipakai (dengan `?v=<versi>`) selama versi yang dipakai adalah versi paket
-yang terpasang: salinan statis di `public/` dilayani web server langsung, lebih cepat daripada lewat PHP. Layout inti
-Dapur 2.11 memakai cara ini untuk Bootstrap.
+Semua aset, termasuk aset Composer, dilayani lewat PHP agar aksesnya bisa diatur. File aset Composer dibaca langsung
+dari folder paketnya di `vendor/`, tanpa disalin. Layout inti Dapur 2.11 memakai helper ini untuk Bootstrap; alamat
+lama `/asset/bootstrap/...` tetap dilayani sampai Dapur 3.0.
 
 ## Aset dari modul (Composer)
 
