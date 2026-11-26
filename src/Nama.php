@@ -20,16 +20,21 @@ final class Nama
     /** Nomor versi, misalnya 5.3.8, 1.0.0-beta.1, atau 2026-11. */
     private const VERSI = '/^[0-9A-Za-z][0-9A-Za-z._+-]{0,39}$/';
 
-    /** Vendor yang dipakai folder aset bawaan inti Dapur (public/asset/<vendor>), jadi tidak boleh dipakai aset. */
+    /**
+     * Vendor milik inti Dapur untuk alamat lama sampai Dapur 3.0: `dapur` (/asset/dapur/..., kini aset adems/dapur) dan
+     * `bootstrap` (/asset/bootstrap/...). Keduanya tidak boleh dipakai aset dari dashboard atau file konfigurasi; aset
+     * dari composer.json inti tetap boleh.
+     */
     public const VENDOR_TERPAKAI = ['dapur', 'bootstrap'];
 
-    public static function sahAset(string $nama): bool
+    /** @param bool $milikInti true untuk aset yang dinyatakan composer.json inti Dapur (boleh memakai vendor inti) */
+    public static function sahAset(string $nama, bool $milikInti = false): bool
     {
         if (preg_match('#^' . self::BAGIAN . '/' . self::BAGIAN . '$#', $nama) !== 1 || str_contains($nama, '..')) {
             return false;
         }
 
-        return ! in_array(explode('/', $nama)[0], self::VENDOR_TERPAKAI, true);
+        return $milikInti || ! in_array(explode('/', $nama)[0], self::VENDOR_TERPAKAI, true);
     }
 
     public static function periksaAset(string $nama): string
